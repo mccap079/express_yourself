@@ -1,333 +1,356 @@
+var Centered;
+var Yawned;
+var Blinked;
+var Smiled;
+
 (function exampleCode() {
-	"use strict";
+    "use strict";
 
-	var Centered = false;
-	var Yawned = false;
-	var Blinked = false;
-	var Smiled = false;
-	var updateConsole;
-	var _faceDetectionRoi = new brfv4.Rectangle();
+    Centered = false;
+    Yawned = false;
+    Blinked = false;
+    Smiled = false;
+    var updateConsole;
+    var _faceDetectionRoi = new brfv4.Rectangle();
 
-	brfv4Example.initCurrentExample = function(brfManager, resolution) {
+    brfv4Example.initCurrentExample = function(brfManager, resolution) {
 
-		brfManager.init(resolution, resolution, brfv4Example.appId);
+        brfManager.init(resolution, resolution, brfv4Example.appId);
 
-		// Sometimes you want to restrict the position and pose of a face.
+        // Sometimes you want to restrict the position and pose of a face.
 
-		// In this setup we will restrict pick up of the face to the center of the image
-		// and we will let BRFv4 reset if the user turns his head too much.
+        // In this setup we will restrict pick up of the face to the center of the image
+        // and we will let BRFv4 reset if the user turns his head too much.
 
-		// We limit the face detection region of interest to be in the central
-		// part of the overall analysed image (green rectangle).
+        // We limit the face detection region of interest to be in the central
+        // part of the overall analysed image (green rectangle).
 
-		_faceDetectionRoi.setTo(
-			resolution.width * 0.25, resolution.height * 0.10,
-			resolution.width * 0.50, resolution.height * 0.80
-		);
-		brfManager.setFaceDetectionRoi(_faceDetectionRoi);
+        _faceDetectionRoi.setTo(
+            resolution.width * 0.25, resolution.height * 0.10,
+            resolution.width * 0.50, resolution.height * 0.80
+        );
+        brfManager.setFaceDetectionRoi(_faceDetectionRoi);
 
-		// We can have either a landscape area (desktop), then choose height or
-		// we can have a portrait area (mobile), then choose width as max face size.
+        // We can have either a landscape area (desktop), then choose height or
+        // we can have a portrait area (mobile), then choose width as max face size.
 
-		var maxFaceSize = _faceDetectionRoi.height;
+        var maxFaceSize = _faceDetectionRoi.height;
 
-		if(_faceDetectionRoi.width < _faceDetectionRoi.height) {
-			maxFaceSize = _faceDetectionRoi.width;
-		}
+        if (_faceDetectionRoi.width < _faceDetectionRoi.height) {
+            maxFaceSize = _faceDetectionRoi.width;
+        }
 
-		// Use the usual detection distances to be able to tell the user what to do.
+        // Use the usual detection distances to be able to tell the user what to do.
 
-		brfManager.setFaceDetectionParams(maxFaceSize * 0.30, maxFaceSize * 1.00, 12, 8);
+        brfManager.setFaceDetectionParams(maxFaceSize * 0.30, maxFaceSize * 1.00, 12, 8);
 
-		// Set up the pickup parameters for the face tracking:
-		// startMinFaceSize, startMaxFaceSize, startRotationX/Y/Z
+        // Set up the pickup parameters for the face tracking:
+        // startMinFaceSize, startMaxFaceSize, startRotationX/Y/Z
 
-		// Faces will only get picked up, if they look straight into the camera
-		// and have a certain size (distance to camera).
+        // Faces will only get picked up, if they look straight into the camera
+        // and have a certain size (distance to camera).
 
-		brfManager.setFaceTrackingStartParams(maxFaceSize * 0.50, maxFaceSize * 0.70, 15, 15, 15);
+        brfManager.setFaceTrackingStartParams(maxFaceSize * 0.50, maxFaceSize * 0.70, 15, 15, 15);
 
-		// Set up the reset conditions for the face tracking:
-		// resetMinFaceSize, resetMaxFaceSize, resetRotationX/Y/Z
+        // Set up the reset conditions for the face tracking:
+        // resetMinFaceSize, resetMaxFaceSize, resetRotationX/Y/Z
 
-		// Face tracking will reset to face detection, if the face turns too much or leaves
-		// the desired distance to the camera.
+        // Face tracking will reset to face detection, if the face turns too much or leaves
+        // the desired distance to the camera.
 
-		brfManager.setFaceTrackingResetParams(maxFaceSize * 0.45, maxFaceSize * 0.75, 25, 25, 25);
-	};
+        brfManager.setFaceTrackingResetParams(maxFaceSize * 0.45, maxFaceSize * 0.75, 25, 25, 25);
+    };
 
-	brfv4Example.updateCurrentExample = function(brfManager, imageData, draw) {
+    brfv4Example.updateCurrentExample = function(brfManager, imageData, draw) {
 
-		brfManager.update(imageData);
+        brfManager.update(imageData);
 
-		draw.clear();
+        draw.clear();
 
-		draw.drawRect(_faceDetectionRoi,					false, 2.0, 0x8aff00, 0.5);
-		draw.drawRects(brfManager.getAllDetectedFaces(),	false, 1.0, 0x00a1ff, 0.5);
+        draw.drawRect(_faceDetectionRoi, false, 2.0, 0x8aff00, 0.5);
+        draw.drawRects(brfManager.getAllDetectedFaces(), false, 1.0, 0x00a1ff, 0.5);
 
-		var mergedFaces = brfManager.getMergedDetectedFaces();
+        var mergedFaces = brfManager.getMergedDetectedFaces();
 
-		draw.drawRects(mergedFaces,							false, 2.0, 0xffd200, 1.0);
+        draw.drawRects(mergedFaces, false, 2.0, 0xffd200, 1.0);
 
-		var faces = brfManager.getFaces();
-		var oneFaceTracked = false;
+        var faces = brfManager.getFaces();
+        var oneFaceTracked = false;
 
-		for(var i = 0; i < faces.length; i++) {
+        for (var i = 0; i < faces.length; i++) {
 
-			var face = faces[i];
+            var face = faces[i];
 
-			if(face.state === brfv4.BRFState.FACE_TRACKING) {
+            if (face.state === brfv4.BRFState.FACE_TRACKING) {
 
-				// Read the rotation of the face and draw it
-				// green if the face is frontal or
-				// red if the user turns the head too much.
+                // Read the rotation of the face and draw it
+                // green if the face is frontal or
+                // red if the user turns the head too much.
 
-				var maxRot = brfv4.BRFv4PointUtils.toDegree(
-					Math.max(
-						Math.abs(face.rotationX),
-						Math.abs(face.rotationY),
-						Math.abs(face.rotationZ)
-					)
-				);
+                var maxRot = brfv4.BRFv4PointUtils.toDegree(
+                    Math.max(
+                        Math.abs(face.rotationX),
+                        Math.abs(face.rotationY),
+                        Math.abs(face.rotationZ)
+                    )
+                );
 
-				var percent = maxRot / 20.0;
-				// console.log("center" + percent);
-				if (percent <= .3){
-					Centered = true;
-				} else {
-					Centered = false;
-				}
-				// console.log("centered" + Centered);
+                var percent = maxRot / 20.0;
+                // console.log("center " + percent);
+                if (percent <= .3) {
+                    Centered = true;
+                    console.log("centered = " + Centered);
+                } else {
+                    if (Centered) {
+                        console.log("centered = " + Centered);
+                    }
+                    Centered = false;
+                }
+                // console.log("centered" + Centered);
 
 
 
-				if(percent < 0.0) { percent = 0.0; }
-				if(percent > 1.0) { percent = 1.0; }
+                if (percent < 0.0) {
+                    percent = 0.0;
+                }
+                if (percent > 1.0) {
+                    percent = 1.0;
+                }
 
-				var color =
-					(((0xff * percent) & 0xff) << 16) +
-					(((0xff * (1.0 - percent) & 0xff) << 8));
+                var color =
+                    (((0xff * percent) & 0xff) << 16) +
+                    (((0xff * (1.0 - percent) & 0xff) << 8));
 
-				draw.drawTriangles(	face.vertices, face.triangles, false, 1.0, color, 0.4);
-				draw.drawVertices(	face.vertices, 2.0, false, color, 0.4);
+                draw.drawTriangles(face.vertices, face.triangles, false, 1.0, color, 0.4);
+                draw.drawVertices(face.vertices, 2.0, false, color, 0.4);
 
-				oneFaceTracked = true;
+                oneFaceTracked = true;
 
 
-				///Smile
-				// Smile Detection
+                ///Smile
+                // Smile Detection
 
-				setPoint(face.vertices, 48, p0); // mouth corner left
-				setPoint(face.vertices, 54, p1); // mouth corner right
+                setPoint(face.vertices, 48, p0); // mouth corner left
+                setPoint(face.vertices, 54, p1); // mouth corner right
 
-				var mouthWidth = calcDistance(p0, p1);
+                var mouthWidth = calcDistance(p0, p1);
 
-				setPoint(face.vertices, 39, p1); // left eye inner corner
-				setPoint(face.vertices, 42, p0); // right eye outer corner
+                setPoint(face.vertices, 39, p1); // left eye inner corner
+                setPoint(face.vertices, 42, p0); // right eye outer corner
 
-				var eyeDist = calcDistance(p0, p1);
-				var smileFactor = mouthWidth / eyeDist;
+                var eyeDist = calcDistance(p0, p1);
+                var smileFactor = mouthWidth / eyeDist;
 
-				smileFactor -= 1.40; // 1.40 - neutral, 1.70 smiling
+                smileFactor -= 1.40; // 1.40 - neutral, 1.70 smiling
 
-				if(smileFactor > 0.25) smileFactor = 0.25;
-				if(smileFactor < 0.00) smileFactor = 0.00;
+                if (smileFactor > 0.25) smileFactor = 0.25;
+                if (smileFactor < 0.00) smileFactor = 0.00;
 
-				smileFactor *= 4.0;
+                smileFactor *= 4.0;
 
-				if(smileFactor < 0.0) { smileFactor = 0.0; }
-				if(smileFactor > 1.0) { smileFactor = 1.0; }
-				// console.log("smileFactor" + smileFactor);
-				if (smileFactor == 1){
-					Smiled = true;
-				} else {
-					Smiled = false;
-				}
-				if (Smiled){
-					console.log("smile: " + Smiled);
-				}
-				///END SMILE
+                if (smileFactor < 0.0) {
+                    smileFactor = 0.0;
+                }
+                if (smileFactor > 1.0) {
+                    smileFactor = 1.0;
+                }
+                // console.log("smileFactor" + smileFactor);
+                if (smileFactor == 1) {
+                    Smiled = true;
+                } else {
+                    Smiled = false;
+                }
+                if (Smiled) {
+                    console.log("smile: " + Smiled);
+                }
+                ///END SMILE
 
 
-				///blink
-				var v = face.vertices;
+                ///blink
+                var v = face.vertices;
 
-				if(_oldFaceShapeVertices.length === 0) storeFaceShapeVertices(v);
+                if (_oldFaceShapeVertices.length === 0) storeFaceShapeVertices(v);
 
-				var k, l, yLE, yRE;
+                var k, l, yLE, yRE;
 
-				// Left eye movement (y)
+                // Left eye movement (y)
 
-				for(k = 36, l = 41, yLE = 0; k <= l; k++) {
-					yLE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
-				}
-				yLE /= 6;
+                for (k = 36, l = 41, yLE = 0; k <= l; k++) {
+                    yLE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
+                }
+                yLE /= 6;
 
-				// Right eye movement (y)
+                // Right eye movement (y)
 
-				for(k = 42, l = 47, yRE = 0; k <= l; k++) {
-					yRE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
-				}
+                for (k = 42, l = 47, yRE = 0; k <= l; k++) {
+                    yRE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
+                }
 
-				yRE /= 6;
+                yRE /= 6;
 
-				var yN = 0;
+                var yN = 0;
 
-				// Compare to overall movement (nose y)
+                // Compare to overall movement (nose y)
 
-				yN += v[27 * 2 + 1] - _oldFaceShapeVertices[27 * 2 + 1];
-				yN += v[28 * 2 + 1] - _oldFaceShapeVertices[28 * 2 + 1];
-				yN += v[29 * 2 + 1] - _oldFaceShapeVertices[29 * 2 + 1];
-				yN += v[30 * 2 + 1] - _oldFaceShapeVertices[30 * 2 + 1];
-				yN /= 4;
+                yN += v[27 * 2 + 1] - _oldFaceShapeVertices[27 * 2 + 1];
+                yN += v[28 * 2 + 1] - _oldFaceShapeVertices[28 * 2 + 1];
+                yN += v[29 * 2 + 1] - _oldFaceShapeVertices[29 * 2 + 1];
+                yN += v[30 * 2 + 1] - _oldFaceShapeVertices[30 * 2 + 1];
+                yN /= 4;
 
-				var blinkRatio = Math.abs((yLE + yRE) / yN);
+                var blinkRatio = Math.abs((yLE + yRE) / yN);
 
-				if((blinkRatio > 12 && (yLE > 0.4 || yRE > 0.4))) {
-					console.log("blink " + blinkRatio.toFixed(2) + " " + yLE.toFixed(2) + " " +
-						yRE.toFixed(2) + " " + yN.toFixed(2));
+                if ((blinkRatio > 12 && (yLE > 0.4 || yRE > 0.4))) {
+                    console.log("blink " + blinkRatio.toFixed(2) + " " + yLE.toFixed(2) + " " +
+                        yRE.toFixed(2) + " " + yN.toFixed(2));
 
-					blink();
-				}
+                    blink();
+                }
 
-				// Let the color of the shape show whether you blinked.
+                // Let the color of the shape show whether you blinked.
 
-				var color = 0x00a0ff;
+                var color = 0x00a0ff;
 
-				if(_blinked) {
-					color = 0xffd200;
-				}
+                if (_blinked) {
+                    color = 0xffd200;
+                }
 
-				// Face Tracking results: 68 facial feature points.
+                // Face Tracking results: 68 facial feature points.
 
-				// draw.drawTriangles(	face.vertices, face.triangles, false, 1.0, color, 0.4);
-				// draw.drawVertices(	face.vertices, 2.0, false, color, 0.4);
+                // draw.drawTriangles(	face.vertices, face.triangles, false, 1.0, color, 0.4);
+                // draw.drawVertices(	face.vertices, 2.0, false, color, 0.4);
 
-				brfv4Example.dom.updateHeadline("BRFv4 - advanced - face tracking - simple blink" +
-					"detection.\nDetects an eye  blink: " + (_blinked ? "Yes" : "No"));
+                brfv4Example.dom.updateHeadline("BRFv4 - advanced - face tracking - simple blink" +
+                    "detection.\nDetects an eye  blink: " + (_blinked ? "Yes" : "No"));
 
-				storeFaceShapeVertices(v);
+                storeFaceShapeVertices(v);
 
-				////END blink
+                ////END blink
 
 
-				///Yawn
-				setPoint(face.vertices, 39, p1); // left eye inner corner
-				setPoint(face.vertices, 42, p0); // right eye outer corner
+                ///Yawn
+                setPoint(face.vertices, 39, p1); // left eye inner corner
+                setPoint(face.vertices, 42, p0); // right eye outer corner
 
-				var eyeDist = calcDistance(p0, p1);
+                var eyeDist = calcDistance(p0, p1);
 
-				setPoint(face.vertices, 62, p0); // mouth upper inner lip
-				setPoint(face.vertices, 66, p1); // mouth lower inner lip
+                setPoint(face.vertices, 62, p0); // mouth upper inner lip
+                setPoint(face.vertices, 66, p1); // mouth lower inner lip
 
-				var mouthOpen = calcDistance(p0, p1);
-				var yawnFactor = mouthOpen / eyeDist;
+                var mouthOpen = calcDistance(p0, p1);
+                var yawnFactor = mouthOpen / eyeDist;
 
-				yawnFactor -= 0.35; // remove smiling
+                yawnFactor -= 0.35; // remove smiling
 
-				if(yawnFactor < 0) yawnFactor = 0;
+                if (yawnFactor < 0) yawnFactor = 0;
 
-				yawnFactor *= 2.0; // scale up a bit
+                yawnFactor *= 4.0; // scale up a bit
 
-				if(yawnFactor > 1.0) yawnFactor = 1.0;
+                if (yawnFactor > 1.0) yawnFactor = 1.0;
 
-				if(yawnFactor < 0.0) { yawnFactor = 0.0; }
-				if(yawnFactor > 1.0) { yawnFactor = 1.0; }
-				if (yawnFactor == 1){
-					Yawned = true;
-				} else {
-					Yawned = false;
-				}
-				if (Yawned){
-				console.log("yawned: " + Yawned);
-			}
-				////END YAWN
+                if (yawnFactor < 0.0) {
+                    yawnFactor = 0.0;
+                }
+                if (yawnFactor > 1.0) {
+                    yawnFactor = 1.0;
+                }
+                if (yawnFactor > 0.5) {
+                    Yawned = true;
+                } else {
+                    Yawned = false;
+                }
+                if (Yawned) {
+                    console.log("yawned: " + Yawned);
+                }
+                ////END YAWN
 
 
-				///DOM update
+                ///DOM update
 
-				var console_update = document.createElement("console_update");
-				var text = document.createTextNode(Yawned);
-				console_update.appendChild(text);
-			}
-		}
+                var console_update = document.createElement("console_update");
+                var text = document.createTextNode(Yawned);
+                console_update.appendChild(text);
+            }
+        }
 
 
-		// Check, if the face is too close or too far way and tell the user what to do.
+        // Check, if the face is too close or too far way and tell the user what to do.
 
-		if(!oneFaceTracked && mergedFaces.length > 0) {
+        if (!oneFaceTracked && mergedFaces.length > 0) {
 
-			var mergedFace = mergedFaces[0];
+            var mergedFace = mergedFaces[0];
 
-			if(mergedFace.width < _faceDetectionRoi.width * 0.50) { // startMinFaceSize
+            if (mergedFace.width < _faceDetectionRoi.width * 0.50) { // startMinFaceSize
 
-				brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
-					"Only track a face if it is in a certain distance. Come closer.");
+                brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
+                    "Only track a face if it is in a certain distance. Come closer.");
 
-			} else if(mergedFace.width > _faceDetectionRoi.width * 0.70) { // startMaxFaceSize
+            } else if (mergedFace.width > _faceDetectionRoi.width * 0.70) { // startMaxFaceSize
 
-				brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
-					"Only track a face if it is in a certain distance. Move further away.");
-			}
+                brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
+                    "Only track a face if it is in a certain distance. Move further away.");
+            }
 
-		} else {
+        } else {
 
-			brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
-				"Only track a face if it is in a certain distance to the camera and is frontal.");
-		}
-	};
+            brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
+                "Only track a face if it is in a certain distance to the camera and is frontal.");
+        }
+    };
 
 
-	///Smile
-	var p0				= new brfv4.Point();
-	var p1				= new brfv4.Point();
+    ///Smile
+    var p0 = new brfv4.Point();
+    var p1 = new brfv4.Point();
 
-	var setPoint		= brfv4.BRFv4PointUtils.setPoint;
-	var calcDistance	= brfv4.BRFv4PointUtils.calcDistance;
-	///END SMILE
+    var setPoint = brfv4.BRFv4PointUtils.setPoint;
+    var calcDistance = brfv4.BRFv4PointUtils.calcDistance;
+    ///END SMILE
 
 
-	////BLINK
-	function blink() {
-		_blinked = true;
-		Blinked = true;
-		console.log("blinked: " + Blinked);
+    ////BLINK
+    function blink() {
+        _blinked = true;
+        Blinked = true;
+        console.log("blinked: " + Blinked);
 
-		if(_timeOut > -1) { clearTimeout(_timeOut); }
+        if (_timeOut > -1) {
+            clearTimeout(_timeOut);
+        }
 
-		_timeOut = setTimeout(resetBlink, 150);
-	}
+        _timeOut = setTimeout(resetBlink, 150);
+    }
 
-	function resetBlink() {
-		_blinked = false;
-		Blinked = false;
-	}
+    function resetBlink() {
+        _blinked = false;
+        Blinked = false;
+    }
 
-	function storeFaceShapeVertices(vertices) {
-		for(var i = 0, l = vertices.length; i < l; i++) {
-			_oldFaceShapeVertices[i] = vertices[i];
-		}
-	}
+    function storeFaceShapeVertices(vertices) {
+        for (var i = 0, l = vertices.length; i < l; i++) {
+            _oldFaceShapeVertices[i] = vertices[i];
+        }
+    }
 
-	var _oldFaceShapeVertices = [];
-	var _blinked		= false;
-	var _timeOut		= -1;
-	////END BLINK
+    var _oldFaceShapeVertices = [];
+    var _blinked = false;
+    var _timeOut = -1;
+    ////END BLINK
 
 
-	////YAWN
-	var p0				= new brfv4.Point();
-	var p1				= new brfv4.Point();
+    ////YAWN
+    var p0 = new brfv4.Point();
+    var p1 = new brfv4.Point();
 
-	var setPoint		= brfv4.BRFv4PointUtils.setPoint;
-	var calcDistance	= brfv4.BRFv4PointUtils.calcDistance;
-	///END YAWN
+    var setPoint = brfv4.BRFv4PointUtils.setPoint;
+    var calcDistance = brfv4.BRFv4PointUtils.calcDistance;
+    ///END YAWN
 
 
 
 
-	brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
-		"Only track a face if it is in a certain distance to the camera and is frontal.");
+    brfv4Example.dom.updateHeadline("BRFv4 - basic - face tracking - restrict to frontal and center\n" +
+        "Only track a face if it is in a certain distance to the camera and is frontal.");
 
-	brfv4Example.dom.updateCodeSnippet(exampleCode + "");
+    brfv4Example.dom.updateCodeSnippet(exampleCode + "");
 })();

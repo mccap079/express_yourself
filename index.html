@@ -26,22 +26,29 @@
 		gtag('config', 'UA-5620419-18');
 	</script>
 
+	<!-- these scripts...: -->
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script src="js/examples/face_tracking/restrict_to_center.js" type="text/javascript"></script> 
+	<!-- ...need to come before this script: -->
+	<script src="client.js" type="text/javascript"></script>
+
+
 </head>
 
 <body>
 
-<div id="_wrapper">
+	<div id="_wrapper">
 
-	<div id="_content">
-		<video  id="_webcam" playsinline></video>
-		<canvas id="_imageData"></canvas>
-		<canvas id="_faceSub"></canvas>
-		<canvas id="_t3d"></canvas>
-		<canvas id="_f3d"></canvas>
-		<canvas id="_drawing"></canvas>
-		<div id="_stats"></div>
-		<div id="_progressBar"></div>
-	</div>
+		<div id="_content">
+			<video  id="_webcam" playsinline></video>
+			<canvas id="_imageData"></canvas>
+			<canvas id="_faceSub"></canvas>
+			<canvas id="_t3d"></canvas>
+			<canvas id="_f3d"></canvas>
+			<canvas id="_drawing"></canvas>
+			<div id="_stats"></div>
+			<div id="_progressBar"></div>
+		</div>
 
 	<!-- <div id="_subline"></div>
 	<div id="_highlight"><pre><code class="javascript" id="_gist"></code></pre></div>
