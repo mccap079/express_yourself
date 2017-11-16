@@ -1,15 +1,18 @@
-#express_yourself 🤗
-##Face-gestural API
+express_yourself 🤗
+===================
 
-###Control flows
+Face-gestural API
 
-####Control flow 1
+Control flows
+-------------
+
+**Control flow 1**
 
 When face is in frame (`isInFrame`) and `isFacingCamera`:
 
 POST: capture image of face (see `face` object) and push to server
 
-####Control flow 2 *(happens concurrently with control flow 1)*
+**Control flow 2 (happens concurrently with control flow 1)**
 
 When eyes are closed and user smiles (`areEyesClosed` && `isSmiling`):
 
@@ -26,7 +29,8 @@ Start session with this person
 
 *When a session is terminated the camera goes back to listening for the "start session" command (`areEyesClosed` && `isSmiling`).*
 
-####Data structure:
+Data structure:
+---------------
 
 The only data stored are images of faces (in an aray) and a few vars regarding status and current state. Each image has a unique ID (**not really using at the moment**), a string identifying the specific feature (**currently not implemented, sorry**) and a url to its location on the server:
 
@@ -47,7 +51,8 @@ The only data stored are images of faces (in an aray) and a few vars regarding s
 
 The `isGettingFaces` bool returns `true` when the client (your camera) is currently capturing pics of your face and sending them to the server (see control flow 1). The `success` and `staus` bools are telling you if your request was successful or not. 
 
-###License
+License
+-------
 
 Made with [Beyond Reality Face SDK](https://github.com/Tastenkunst/brfv4_javascript_examples) with the following license:
 
@@ -55,13 +60,13 @@ Made with [Beyond Reality Face SDK](https://github.com/Tastenkunst/brfv4_javascr
     Stump-based 24x24 discrete(?) adaboost frontal face detector.
     Created by Rainer Lienhart.
 
-////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
 
-  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+    IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
 
-  By downloading, copying, installing or using the software you agree to this license.
-  If you do not agree to this license, do not download, install,
-  copy or use the software.
+    By downloading, copying, installing or using the software you agree to this license.
+    If you do not agree to this license, do not download, install,
+    copy or use the software.
 
 
                         Intel License Agreement
