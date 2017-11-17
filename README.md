@@ -16,7 +16,6 @@ Yawn. Pull the last image posted.
 Smile. Delete the last image posted. 
 
 Data structure:
-
 ---------------
 
 The only data stored are images of faces (in an aray) and a few vars regarding status and current state. Each image has a unique ID (**not really using at the moment**), a string identifying the specific feature (**currently not implemented, sorry**) and a url to its location on the server:
