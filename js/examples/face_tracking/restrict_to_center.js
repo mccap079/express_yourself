@@ -1,15 +1,12 @@
-var Centered;
-var Yawned;
-var Blinked;
-var Smiled;
+var socket = io.connect();
 
 (function exampleCode() {
     "use strict";
 
-    Centered = false;
-    Yawned = false;
-    Blinked = false;
-    Smiled = false;
+    var Centered = false;
+    var Yawned = false;
+    var Blinked = false;
+    var Smiled = false;
     var updateConsole;
     var _faceDetectionRoi = new brfv4.Rectangle();
 
@@ -96,14 +93,10 @@ var Smiled;
                 );
 
                 var percent = maxRot / 20.0;
-                // console.log("center " + percent);
+                // console.log("center" + percent);
                 if (percent <= .3) {
                     Centered = true;
-                    console.log("centered = " + Centered);
                 } else {
-                    if (Centered) {
-                        console.log("centered = " + Centered);
-                    }
                     Centered = false;
                 }
                 // console.log("centered" + Centered);
@@ -129,139 +122,149 @@ var Smiled;
 
                 ///Smile
                 // Smile Detection
+                if (Centered) {
 
-                setPoint(face.vertices, 48, p0); // mouth corner left
-                setPoint(face.vertices, 54, p1); // mouth corner right
+                    setPoint(face.vertices, 48, p0); // mouth corner left
+                    setPoint(face.vertices, 54, p1); // mouth corner right
 
-                var mouthWidth = calcDistance(p0, p1);
+                    var mouthWidth = calcDistance(p0, p1);
 
-                setPoint(face.vertices, 39, p1); // left eye inner corner
-                setPoint(face.vertices, 42, p0); // right eye outer corner
+                    setPoint(face.vertices, 39, p1); // left eye inner corner
+                    setPoint(face.vertices, 42, p0); // right eye outer corner
 
-                var eyeDist = calcDistance(p0, p1);
-                var smileFactor = mouthWidth / eyeDist;
+                    var eyeDist = calcDistance(p0, p1);
+                    var smileFactor = mouthWidth / eyeDist;
 
-                smileFactor -= 1.40; // 1.40 - neutral, 1.70 smiling
+                    smileFactor -= 1.40; // 1.40 - neutral, 1.70 smiling
 
-                if (smileFactor > 0.25) smileFactor = 0.25;
-                if (smileFactor < 0.00) smileFactor = 0.00;
+                    if (smileFactor > 0.25) smileFactor = 0.25;
+                    if (smileFactor < 0.00) smileFactor = 0.00;
 
-                smileFactor *= 4.0;
+                    smileFactor *= 4.0;
 
-                if (smileFactor < 0.0) {
-                    smileFactor = 0.0;
-                }
-                if (smileFactor > 1.0) {
-                    smileFactor = 1.0;
-                }
-                // console.log("smileFactor" + smileFactor);
-                if (smileFactor == 1) {
-                    Smiled = true;
-                } else {
-                    Smiled = false;
-                }
-                if (Smiled) {
-                    console.log("smile: " + Smiled);
-                }
+                    if (smileFactor < 0.0) {
+                        smileFactor = 0.0;
+                    }
+                    if (smileFactor > 1.0) {
+                        smileFactor = 1.0;
+                    }
+                    // console.log("smileFactor" + smileFactor);
+                    if (smileFactor == 1) {
+                        if (!Smiled) {
+                            console.log("DELETE (smiled)");
+                            socket.emit('deleteLastFace', 0);
+                        }
+                        Smiled = true;
+                    } else {
+                        Smiled = false;
+                    }
+                } //centerd 
                 ///END SMILE
 
 
                 ///blink
-                var v = face.vertices;
+                if (Centered) {
 
-                if (_oldFaceShapeVertices.length === 0) storeFaceShapeVertices(v);
+                    var v = face.vertices;
 
-                var k, l, yLE, yRE;
+                    if (_oldFaceShapeVertices.length === 0) storeFaceShapeVertices(v);
 
-                // Left eye movement (y)
+                    var k, l, yLE, yRE;
 
-                for (k = 36, l = 41, yLE = 0; k <= l; k++) {
-                    yLE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
-                }
-                yLE /= 6;
+                    // Left eye movement (y)
 
-                // Right eye movement (y)
+                    for (k = 36, l = 41, yLE = 0; k <= l; k++) {
+                        yLE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
+                    }
+                    yLE /= 6;
 
-                for (k = 42, l = 47, yRE = 0; k <= l; k++) {
-                    yRE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
-                }
+                    // Right eye movement (y)
 
-                yRE /= 6;
+                    for (k = 42, l = 47, yRE = 0; k <= l; k++) {
+                        yRE += v[k * 2 + 1] - _oldFaceShapeVertices[k * 2 + 1];
+                    }
 
-                var yN = 0;
+                    yRE /= 6;
 
-                // Compare to overall movement (nose y)
+                    var yN = 0;
 
-                yN += v[27 * 2 + 1] - _oldFaceShapeVertices[27 * 2 + 1];
-                yN += v[28 * 2 + 1] - _oldFaceShapeVertices[28 * 2 + 1];
-                yN += v[29 * 2 + 1] - _oldFaceShapeVertices[29 * 2 + 1];
-                yN += v[30 * 2 + 1] - _oldFaceShapeVertices[30 * 2 + 1];
-                yN /= 4;
+                    // Compare to overall movement (nose y)
 
-                var blinkRatio = Math.abs((yLE + yRE) / yN);
+                    yN += v[27 * 2 + 1] - _oldFaceShapeVertices[27 * 2 + 1];
+                    yN += v[28 * 2 + 1] - _oldFaceShapeVertices[28 * 2 + 1];
+                    yN += v[29 * 2 + 1] - _oldFaceShapeVertices[29 * 2 + 1];
+                    yN += v[30 * 2 + 1] - _oldFaceShapeVertices[30 * 2 + 1];
+                    yN /= 4;
 
-                if ((blinkRatio > 12 && (yLE > 0.4 || yRE > 0.4))) {
-                    console.log("blink " + blinkRatio.toFixed(2) + " " + yLE.toFixed(2) + " " +
-                        yRE.toFixed(2) + " " + yN.toFixed(2));
+                    var blinkRatio = Math.abs((yLE + yRE) / yN);
 
-                    blink();
-                }
+                    if ((blinkRatio > 12 && (yLE > 0.4 || yRE > 0.4))) {
+                        // console.log("blink " + blinkRatio.toFixed(2) + " " + yLE.toFixed(2) + " " +
+                        //     yRE.toFixed(2) + " " + yN.toFixed(2));
 
-                // Let the color of the shape show whether you blinked.
+                        blink();
+                    }
 
-                var color = 0x00a0ff;
+                    // Let the color of the shape show whether you blinked.
 
-                if (_blinked) {
-                    color = 0xffd200;
-                }
+                    var color = 0x00a0ff;
 
-                // Face Tracking results: 68 facial feature points.
+                    if (_blinked) {
+                        color = 0xffd200;
+                    }
 
-                // draw.drawTriangles(	face.vertices, face.triangles, false, 1.0, color, 0.4);
-                // draw.drawVertices(	face.vertices, 2.0, false, color, 0.4);
+                    // Face Tracking results: 68 facial feature points.
 
-                brfv4Example.dom.updateHeadline("BRFv4 - advanced - face tracking - simple blink" +
-                    "detection.\nDetects an eye  blink: " + (_blinked ? "Yes" : "No"));
+                    // draw.drawTriangles(	face.vertices, face.triangles, false, 1.0, color, 0.4);
+                    // draw.drawVertices(	face.vertices, 2.0, false, color, 0.4);
 
-                storeFaceShapeVertices(v);
+                    brfv4Example.dom.updateHeadline("BRFv4 - advanced - face tracking - simple blink" +
+                        "detection.\nDetects an eye  blink: " + (_blinked ? "Yes" : "No"));
 
+                    storeFaceShapeVertices(v);
+                } // centerd
                 ////END blink
 
 
                 ///Yawn
-                setPoint(face.vertices, 39, p1); // left eye inner corner
-                setPoint(face.vertices, 42, p0); // right eye outer corner
+                if (Centered) {
 
-                var eyeDist = calcDistance(p0, p1);
+                    setPoint(face.vertices, 39, p1); // left eye inner corner
+                    setPoint(face.vertices, 42, p0); // right eye outer corner
 
-                setPoint(face.vertices, 62, p0); // mouth upper inner lip
-                setPoint(face.vertices, 66, p1); // mouth lower inner lip
+                    var eyeDist = calcDistance(p0, p1);
 
-                var mouthOpen = calcDistance(p0, p1);
-                var yawnFactor = mouthOpen / eyeDist;
+                    setPoint(face.vertices, 62, p0); // mouth upper inner lip
+                    setPoint(face.vertices, 66, p1); // mouth lower inner lip
 
-                yawnFactor -= 0.35; // remove smiling
+                    var mouthOpen = calcDistance(p0, p1);
+                    var yawnFactor = mouthOpen / eyeDist;
 
-                if (yawnFactor < 0) yawnFactor = 0;
+                    yawnFactor -= 0.35; // remove smiling
 
-                yawnFactor *= 4.0; // scale up a bit
+                    if (yawnFactor < 0) yawnFactor = 0;
 
-                if (yawnFactor > 1.0) yawnFactor = 1.0;
+                    yawnFactor *= 4.0; // scale up a bit
 
-                if (yawnFactor < 0.0) {
-                    yawnFactor = 0.0;
-                }
-                if (yawnFactor > 1.0) {
-                    yawnFactor = 1.0;
-                }
-                if (yawnFactor > 0.5) {
-                    Yawned = true;
-                } else {
-                    Yawned = false;
-                }
-                if (Yawned) {
-                    console.log("yawned: " + Yawned);
-                }
+                    if (yawnFactor > 1.0) yawnFactor = 1.0;
+
+                    if (yawnFactor < 0.0) {
+                        yawnFactor = 0.0;
+                    }
+                    if (yawnFactor > 1.0) {
+                        yawnFactor = 1.0;
+                    }
+                    if (yawnFactor > 0.6) {
+                        if (!Yawned) {
+                            socket.emit('getLastFace', 0);
+                            console.log("GET (yawned)");
+                        }
+                        Yawned = true;
+
+                    } else {
+                        Yawned = false;
+                    }
+                } ///centered
                 ////END YAWN
 
 
@@ -311,8 +314,18 @@ var Smiled;
     ////BLINK
     function blink() {
         _blinked = true;
+        if (!Blinked) {
+            var img = new Image();
+            img.src = 'assets/brfv4_lion.png';
+            var face = {
+                id: uuidv4(),
+                feature: "face",
+                url: img.src
+            };
+            socket.emit('newFace', face); //POST image obj
+            console.log("POST (blinked)");
+        }
         Blinked = true;
-        console.log("blinked: " + Blinked);
 
         if (_timeOut > -1) {
             clearTimeout(_timeOut);
@@ -324,6 +337,14 @@ var Smiled;
     function resetBlink() {
         _blinked = false;
         Blinked = false;
+    }
+
+    function uuidv4() { //generates UID - https://stackoverflow.com/a/2117523/1757149
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
     }
 
     function storeFaceShapeVertices(vertices) {

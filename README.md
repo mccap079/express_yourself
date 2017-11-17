@@ -1,35 +1,22 @@
 express_yourself 🤗
 ===================
 
-Face-gestural API
+Face-gestural API created with [Beyond Reality Face SDK for javascript](https://github.com/Tastenkunst/brfv4_javascript_examples). See `/js/examples/face_tacking/restrict_to_center.js` for our ([Richard Lapham](https://github.com/Rlapham), [Andrew McCausland](https://github.com/mccap079)) added code, including all socket (via [socket.io](https://github.com/socketio/socket.io)) communication with server and gesture implementation. See `server.js` for server-side implementation.
 
-Control flows
--------------
+Controls
+--------
 
-**Control flow 1**
+**POST**
+Blink. Currently posts dummy image to server. Can post any data you'd like.
 
-When face is in frame (`isInFrame`) and `isFacingCamera`:
+**GET**
+Yawn. Pull the last image posted.
 
-POST: capture image of face (see `face` object) and push to server
-
-**Control flow 2 (happens concurrently with control flow 1)**
-
-When eyes are closed and user smiles (`areEyesClosed` && `isSmiling`):
-
-Start session with this person
-
-*Starting a session means camera starts listening for signals to do 1 of the following:*
-
- - When user is smiling (`isSmiling`):
-	 - GET last face (`face` object) added to server
- - When user is "yawning" (`isMouthOpen`):
- 	 - DELETE last face (`face` object) added to server
- - When user's eyes are closed and user is smiling (`areEyesClosed` && `isSmiling`):
-	 - End session with this person
-
-*When a session is terminated the camera goes back to listening for the "start session" command (`areEyesClosed` && `isSmiling`).*
+**DELETE**
+Smile. Delete the last image posted. 
 
 Data structure:
+
 ---------------
 
 The only data stored are images of faces (in an aray) and a few vars regarding status and current state. Each image has a unique ID (**not really using at the moment**), a string identifying the specific feature (**currently not implemented, sorry**) and a url to its location on the server:
@@ -44,17 +31,18 @@ The only data stored are images of faces (in an aray) and a few vars regarding s
             "feature": "string",
             "url": "string"
         }]
-        "isGettingFaces": "bool",
-        "success": "bool",
-        "status": "int"
     } 
 
-The `isGettingFaces` bool returns `true` when the client (your camera) is currently capturing pics of your face and sending them to the server (see control flow 1). The `success` and `staus` bools are telling you if your request was successful or not. 
+`id`: unique id for each image posted. See `uuidv4()` in `/js/examples/face_tacking/restrict_to_center.js`.
+
+`feature`: stringdenoting the subject of the image. Not automated in any way at the moment, just a custom string implementation.
+
+`url`: location on the server.
 
 License
 -------
 
-Made with [Beyond Reality Face SDK](https://github.com/Tastenkunst/brfv4_javascript_examples) with the following license:
+Via [Beyond Reality Face SDK](https://github.com/Tastenkunst/brfv4_javascript_examples):
 
     <!--
     Stump-based 24x24 discrete(?) adaboost frontal face detector.

@@ -51,7 +51,6 @@ var isGettingFaces = false;
 var path = "api/faces.json";
 var data = {};
 data.images = [];
-data.isGettingFaces = isGettingFaces;
 // data.success = "undefined";
 // data.status = "undefined";
 updateFile(path, data);
@@ -67,13 +66,14 @@ io.sockets.on('connection',
     function(socket) {
         console.log("We have a new client: " + socket.id);
 
-        socket.on('isGettingFaces', function(data) {
-            isGettingFaces = data;
+        socket.on('isGettingFaces', function(_isGettingFaces) {
+            isGettingFaces = _isGettingFaces;
             console.log("isGettingFaces set to " + isGettingFaces);
         });
 
-        socket.on('newFace', function(data) {
-            data.images.push(data); //push latest face into images array
+        socket.on('newFace', function(faceObj) {
+            console.log("adding this face:" + JSON.stringify(faceObj));
+            data.images.push(faceObj); //push latest face into images array
             updateFile(path, data); //rewrite the .json file with latest array
         });
 
@@ -94,10 +94,10 @@ io.sockets.on('connection',
     }
 );
 
-function updateFile(path, data) {
-    fs.writeFile(path, JSON.stringify(data), function(err) { //https://stackoverflow.com/a/36856643/1757149
+function updateFile(path, content) {
+    fs.writeFile(path, JSON.stringify(content), function(err) { //https://stackoverflow.com/a/36856643/1757149
         if (err) throw err;
-        console.log('File updated: \n' + JSON.stringify(data));
+        console.log('File updated: \n' + JSON.stringify(content));
     });
 }
 
